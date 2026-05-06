@@ -427,13 +427,6 @@ textarea#inp::placeholder{color:rgba(255,255,255,.32)}
 <div id="intro" style="position:fixed;top:-50px;left:-50px;right:-50px;bottom:-50px;z-index:99999;display:flex;align-items:center;justify-content:center;background:#000;pointer-events:none">
   <div id="intro-text" style="font-family:'Syne',sans-serif;font-size:clamp(48px,11vw,88px);font-weight:800;letter-spacing:-2.2px;background:linear-gradient(135deg,#6a6a6a 0%,#c8c8c8 30%,#ffffff 50%,#b8b8b8 70%,#5a5a5a 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;opacity:0;transition:opacity 1.2s cubic-bezier(.4,0,.2,1)">Selcio</div>
 </div>
-
-
-
-
-
-  </div>
-
 <div class="bg">
   <div class="bg-base"></div>
   <div class="bg-noise"></div>
@@ -505,8 +498,6 @@ textarea#inp::placeholder{color:rgba(255,255,255,.32)}
     </div>
 
     <div class="inp-zone">
-      
-      </div>
       <div class="sugs" id="sugs">
         <button class="sug" onclick="useSug(this)">Объясни как работает ИИ</button>
         <button class="sug" onclick="useSug(this)">Помоги написать текст</button>
@@ -550,9 +541,15 @@ const LOGO="data:image/jpeg;base64,/9j/4QXoRXhpZgAASUkqAAgAAAADAA4BAgC4AgAAMgAAA
 
 // ─── INTRO ANIMATION ───
 (function(){
+  try{
   const intro=document.getElementById('intro');
   const text=document.getElementById('intro-text');
-  if(!intro)return;
+  if(!intro){
+    // No intro element — make sure body is dark default
+    document.documentElement.style.background='#04020a';
+    document.body.style.background='#04020a';
+    return;
+  }
   
   // Set body and html bg to BLACK initially (covers iPhone safe-area)
   document.documentElement.style.background='#000';
@@ -585,10 +582,22 @@ const LOGO="data:image/jpeg;base64,/9j/4QXoRXhpZgAASUkqAAgAAAADAA4BAgC4AgAAMgAAA
   
   // Step 4: at 5600ms — remove intro from DOM, reset transitions
   setTimeout(()=>{
-    intro.remove();
-    document.documentElement.style.transition='';
-    document.body.style.transition='';
+    try{
+      intro.remove();
+      document.documentElement.style.transition='';
+      document.body.style.transition='';
+      document.documentElement.style.background='#04020a';
+      document.body.style.background='#04020a';
+    }catch(e){}
   },5600);
+  }catch(e){
+    // Failsafe: any error — restore normal state
+    console.error('Intro error:', e);
+    const i=document.getElementById('intro');
+    if(i)i.remove();
+    document.documentElement.style.background='#04020a';
+    document.body.style.background='#04020a';
+  }
 })();
 
 // ─── STARS — большие и яркие ───
@@ -889,19 +898,6 @@ async function sendVoice(text){
 }
 
 
-
-  document.getElementById('mdl-pick').classList.remove('open');
-  document.getElementById('mdl-menu').classList.remove('show');
-}
-
-document.addEventListener('click', e=>{
-  if(!e.target.closest('#mdl-pick')){
-    document.getElementById('mdl-pick')?.classList.remove('open');
-    document.getElementById('mdl-menu')?.classList.remove('show');
-  }
-});
-
-initModelUI();
 
 renderHist();
 </script>
