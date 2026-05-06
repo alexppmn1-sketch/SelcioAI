@@ -12,11 +12,14 @@
 <meta name="theme-color" content="#04020a">
 <title>Selcio</title>
 <link rel="manifest" href="/manifest.json">
-<link rel="icon" type="image/png" href="/icon-192.png">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
 <link rel="apple-touch-icon" href="/icon-180.png">
 <link rel="apple-touch-icon" sizes="180x180" href="/icon-180.png">
-<link rel="apple-touch-icon" sizes="192x192" href="/icon-192.png">
-<link rel="apple-touch-icon" sizes="512x512" href="/icon-512.png">
+<link rel="shortcut icon" href="/favicon.ico">
 <link rel="apple-touch-startup-image" href="/splash.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@200;300;400;500&display=swap" rel="stylesheet">
@@ -213,8 +216,10 @@ body{font-family:var(--bf);background:#04020a;color:var(--text);
   background:linear-gradient(135deg,rgba(200,75,12,.3),rgba(160,45,5,.4));
   border:1px solid rgba(220,100,25,.22);color:rgba(255,190,120,.9)}
 
-.bub{max-width:80%;padding:12px 16px;border-radius:20px;
-  font-size:14.5px;line-height:1.75;word-break:break-word;font-weight:300}
+.bub{max-width:80%;padding:13px 17px;border-radius:20px;
+  font-size:15px;line-height:1.7;word-break:break-word;font-weight:400;
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  letter-spacing:-.005em}
 .msg.ai .bub{background:rgba(255,255,255,.038);
   border:1px solid rgba(255,255,255,.09);
   border-top-color:rgba(255,255,255,.14);
@@ -222,7 +227,7 @@ body{font-family:var(--bf);background:#04020a;color:var(--text);
   backdrop-filter:blur(32px) saturate(160%);
   -webkit-backdrop-filter:blur(32px) saturate(160%);
   box-shadow:0 4px 24px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.09);
-  color:rgba(255,255,255,.88)}
+  color:rgba(255,255,255,.94)}
 .msg.user .bub{background:linear-gradient(135deg,rgba(180,62,10,.5),rgba(130,38,5,.62));
   border:1px solid rgba(220,100,25,.22);
   border-top-color:rgba(255,150,70,.25);
@@ -232,7 +237,13 @@ body{font-family:var(--bf);background:#04020a;color:var(--text);
 .bub img{max-width:100%;border-radius:12px;margin-top:8px;display:block}
 .bub a{color:rgba(230,160,80,.9);text-decoration:none;border-bottom:1px solid rgba(230,160,80,.28);transition:all .2s}
 .bub a:hover{color:#fff}
-.bub strong{font-weight:500;color:#fff}
+.bub strong{font-weight:600;color:#fff}
+.bub p{margin:0 0 .7em;line-height:1.7}.bub p:last-child{margin-bottom:0}
+.bub h1,.bub h2,.bub h3{font-family:'Syne',-apple-system,sans-serif;font-weight:700;margin:1em 0 .4em;letter-spacing:-.3px;line-height:1.25;color:#fff}
+.bub h1{font-size:1.3em}.bub h2{font-size:1.18em}.bub h3{font-size:1.08em}
+.bub ul,.bub ol{margin:.4em 0 .7em;padding-left:1.4em}
+.bub li{margin:.3em 0;line-height:1.65}
+.bub li::marker{color:rgba(220,140,70,.7)}
 .bub code{background:rgba(255,255,255,.07);padding:1px 6px;border-radius:5px;font-size:13px;font-family:monospace}
 
 .sources{margin-top:10px;display:flex;flex-direction:column;gap:5px}
@@ -757,11 +768,37 @@ function ensureChat(text){
 }
 
 function fmt(t){
-  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/\n/g,'<br>')
-    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
-    .replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>')
-    .replace(/`(.*?)`/g,'<code>$1</code>');
+  let s = t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  // Code blocks ```lang\ncode``` first — protect them from other formatting
+  const codeBlocks = [];
+  s = s.replace(/```(?:\w+)?\n([\s\S]*?)```/g, (m, code) => {
+    codeBlocks.push(code);
+    return `__CODEBLOCK_${codeBlocks.length-1}__`;
+  });
+  // Headings
+  s = s.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+  s = s.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+  s = s.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+  // Lists: turn lines starting with - or * or 1. into items
+  s = s.replace(/(?:^|\n)((?:[-*] .+\n?)+)/g, (m, list) => {
+    const items = list.trim().split(/\n/).map(l => '<li>'+l.replace(/^[-*]\s+/, '')+'</li>').join('');
+    return '\n<ul>'+items+'</ul>';
+  });
+  s = s.replace(/(?:^|\n)((?:\d+\. .+\n?)+)/g, (m, list) => {
+    const items = list.trim().split(/\n/).map(l => '<li>'+l.replace(/^\d+\.\s+/, '')+'</li>').join('');
+    return '\n<ol>'+items+'</ol>';
+  });
+  // Bold and inline code
+  s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
+  // Restore code blocks
+  s = s.replace(/__CODEBLOCK_(\d+)__/g, (m, i) => '<pre><code>'+codeBlocks[i]+'</code></pre>');
+  // Paragraph breaks: double newline = paragraph
+  s = s.split(/\n\n+/).map(p => p.trim() ? (p.match(/^<(h\d|ul|ol|pre|blockquote)/) ? p : '<p>'+p+'</p>') : '').join('');
+  // Single newlines inside paragraphs → <br>
+  s = s.replace(/<p>([\s\S]*?)<\/p>/g, (m, content) => '<p>'+content.replace(/\n/g,'<br>')+'</p>');
+  return s;
 }
 
 function addBub(role,text,anim=true,imgUrl=null){
