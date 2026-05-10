@@ -517,17 +517,17 @@ textarea#inp::placeholder{color:rgba(255,255,255,.32)}
       </div>
       
       <div class="img-prev" id="img-prev" style="display:none">
-        <img id="img-prev-img" src="" alt="">
+        <img id="prev-img" src="" alt="">
         <button class="img-prev-x" onclick="clearImg()" title="Убрать">×</button>
       </div>
       
       <div class="inp-panel">
-        <textarea id="inp" placeholder="Что ты хочешь узнать?" rows="1" oninput="autoGrow(this)" onkeydown="onKey(event)"></textarea>
+        <textarea id="inp" placeholder="Что ты хочешь узнать?" rows="1"></textarea>
         <div class="inp-toolbar">
           <button class="iab icon-btn" title="Голос" onclick="startVoice()">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3zM5 11a7 7 0 0 0 14 0M12 18v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
           </button>
-          <button class="iab send" onclick="send()">
+          <button class="iab send" id="sbtn" onclick="send()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             Отправить
           </button>
@@ -840,10 +840,12 @@ function clearImg(){pendingImg=null;document.getElementById('img-prev').classLis
 function useSug(btn){inpEl.value=btn.textContent;send()}
 
 async function send(){
+  try{
   const text=inpEl.value.trim();
   if(!text&&!pendingImg)return;
   inpEl.value='';inpEl.style.height='auto';
-  document.getElementById('sbtn').disabled=true;
+  const sbtn=document.getElementById('sbtn');
+  if(sbtn)sbtn.disabled=true;
   showChatState();ensureChat(text);
   const snap=pendingImg;clearImg();
   addBub('user',text||'',true,snap?.url||null);
@@ -885,7 +887,14 @@ async function send(){
     }
     sb.done();c.messages.push({role:'assistant',content:full});saveChats();
   }catch(e){sb.add('⚠ Нет соединения.');sb.done()}
-  document.getElementById('sbtn').disabled=false;
+  const sbtn2=document.getElementById('sbtn');
+  if(sbtn2)sbtn2.disabled=false;
+  }catch(err){
+    console.error('send() error:',err);
+    alert('Ошибка: '+err.message);
+    const sbtn3=document.getElementById('sbtn');
+    if(sbtn3)sbtn3.disabled=false;
+  }
 }
 
 inpEl.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send()}});
