@@ -10,7 +10,7 @@
   ],
   "headers": [
     {
-      "source": "/(.*\\.(ico|png|jpg|jpeg|webp|svg|json))",
+      "source": "/(.*).(ico|png|jpg|jpeg|webp|svg|json)",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=86400" }
       ]
